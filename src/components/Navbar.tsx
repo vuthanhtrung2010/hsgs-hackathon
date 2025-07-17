@@ -16,16 +16,8 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 import { ModeToggle } from "./ThemeToggle";
 import { MobileSidebar } from "./MobileSidebar";
-import { getGravatarURL } from "@/lib/utils";
 
 function ListItem({
   title,

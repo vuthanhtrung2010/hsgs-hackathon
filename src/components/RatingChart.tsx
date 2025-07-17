@@ -13,8 +13,10 @@ import {
   StripLine,
   IPointRenderEventArgs,
 } from "@syncfusion/ej2-react-charts";
+import { registerLicense } from "@syncfusion/ej2-base";
 import { useTheme } from "next-themes";
 
+registerLicense(process.env.SYNCFUSION_LICENSE || "");
 interface RatingChange {
   date: string;
   rating: number;

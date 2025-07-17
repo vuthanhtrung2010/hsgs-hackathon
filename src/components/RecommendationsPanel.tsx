@@ -4,7 +4,7 @@ import React from 'react';
 import { getRatingClass } from '@/lib/rating';
 import { Recommendations } from '@/lib/server-actions/users';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookOpen, faLightbulb, faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { faBookOpen, faLightbulb, faTrophy, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface RecommendationsProps {
   recommendations?: Recommendations[];
@@ -12,6 +12,10 @@ interface RecommendationsProps {
 }
 
 export default function RecommendationsPanel({ recommendations, userRating }: RecommendationsProps) {
+  // Canvas URL configuration
+  const canvasBaseUrl = process.env.NEXT_PUBLIC_CANVAS_API_BASE_URL || 'https://canvas.instructure.com';
+  const courseId = process.env.NEXT_PUBLIC_CANVAS_COURSE_ID || '';
+
   if (!recommendations || recommendations.length === 0) {
     return (
       <div className="bg-card border rounded-lg p-6 h-fit">
@@ -55,19 +59,30 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
             difficultyText = 'Practice';
           }
 
+          const quizUrl = courseId 
+            ? `${canvasBaseUrl}/courses/${courseId}/quizzes/${rec.id}`
+            : '#'; // Fallback if environment variables are not set
+
           return (
-            <div
+            <a
               key={rec.id}
-              className="border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+              href={quizUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block border rounded-lg p-4 hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer group"
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2">
+                <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2 group-hover:text-primary transition-colors">
                   {rec.title}
                 </h3>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <FontAwesomeIcon 
                     icon={difficultyIcon} 
                     className={`w-3 h-3 ${difficultyColor}`} 
+                  />
+                  <FontAwesomeIcon 
+                    icon={faExternalLinkAlt} 
+                    className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors ml-1" 
                   />
                 </div>
               </div>
@@ -86,7 +101,7 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
                   {difficultyLevel > 0 ? '+' : ''}{difficultyLevel} from your rating
                 </div>
               )}
-            </div>
+            </a>
           );
         })}
       </div>

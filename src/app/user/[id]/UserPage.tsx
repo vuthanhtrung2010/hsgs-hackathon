@@ -8,6 +8,8 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import RatingChart from "@/components/RatingChart";
 import RatingDisplay from "@/components/RatingDisplay";
+import ClusterRadarChart from "@/components/ClusterRadarChart";
+import RecommendationsPanel from "@/components/RecommendationsPanel";
 
 interface UserPageProps {
   userData: IUserData;
@@ -87,6 +89,18 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
 
         {/* Main content */}
         <div className="user-content">
+          {/* IELTS Skills & Recommendations */}
+          <div className="grid lg:grid-cols-[2fr_1fr] gap-6 mb-6">
+            <ClusterRadarChart 
+              clusters={userData.clusters} 
+              userName={userData.name}
+            />
+            <RecommendationsPanel 
+              recommendations={userData.recommendations}
+              userRating={userData.rating}
+            />
+          </div>
+
           {/* Activity Heatmap */}
           {/* <div className="bg-card border rounded-lg p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">Submission Activity</h2>

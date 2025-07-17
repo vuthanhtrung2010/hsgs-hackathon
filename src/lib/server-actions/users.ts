@@ -11,6 +11,25 @@ export interface Recommendations {
   rating: number;
 }
 
+export interface Clusters {
+  BUSINESS: number;
+  ENVIRONMENT: number;
+  FAMILY_AND_CHILDREN: number;
+  FOOD: number;
+  TECHNOLOGY: number;
+  TRANSPORT: number;
+  CRIME: number;
+  LANGUAGE: number;
+  TRAVEL: number;
+  ECONOMY: number;
+  HEALTH: number;
+  EDUCATION: number;
+  COMMUNICATION: number;
+  MEDIA: number;
+  READING: number;
+  ART: number;
+}
+
 export interface IUserData {
   id: number;
   name: string;
@@ -24,6 +43,7 @@ export interface IUserData {
   }[];
   avatarURL: string;
   recommendations?: Recommendations[];
+  clusters: Clusters;
 }
 
 export async function getUsersList(): Promise<IUsersListData[]> {

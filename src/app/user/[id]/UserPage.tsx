@@ -47,7 +47,7 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
             <p className="text-muted-foreground text-center mb-4">
               {getRatingTitle(userData.rating)}
             </p>
-            
+
             {/* Rating Statistics */}
             <div className="bg-card border rounded-lg p-4 w-full">
               {userRank && (
@@ -57,15 +57,19 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
                 </div>
               )}
               <div className="flex justify-between items-center mb-3">
-                <span className="text-muted-foreground">Rating:</span>
+                <span className="text-muted-foreground">Rating (avg):</span>
                 <RatingDisplay rating={userData.rating} showIcon={true} />
               </div>
               <div className="flex justify-between items-center mb-3">
-                <span className="text-muted-foreground">Min. rating:</span>
+                <span className="text-muted-foreground">
+                  Min. rating (avg):
+                </span>
                 <RatingDisplay rating={userData.minRating} showIcon={true} />
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Max. rating:</span>
+                <span className="text-muted-foreground">
+                  Max. rating (avg):
+                </span>
                 <RatingDisplay rating={userData.maxRating} showIcon={true} />
               </div>
             </div>
@@ -100,14 +104,13 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
 
           {/* Rating History */}
           <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Rating History</h2>
+            <h2 className="text-xl font-semibold mb-4">Average Rating History</h2>
             {userData.ratingChanges && userData.ratingChanges.length > 0 ? (
               <div className="w-full">
                 <RatingChart
                   ratingChanges={userData.ratingChanges}
                   minRating={userData.minRating}
                   maxRating={userData.maxRating}
-                  currentRating={userData.rating}
                 />
               </div>
             ) : (

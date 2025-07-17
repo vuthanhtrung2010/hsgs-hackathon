@@ -14,7 +14,6 @@ import {
   IPointRenderEventArgs,
 } from "@syncfusion/ej2-react-charts";
 import { useTheme } from "next-themes";
-import { getRatingTitle } from "@/lib/rating";
 
 interface RatingChange {
   date: string;

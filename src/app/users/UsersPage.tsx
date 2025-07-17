@@ -209,7 +209,7 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
                       </td>
                       <td className="data-table-body-cell">
                         <Link
-                          href={`/user/${user.name}`}
+                          href={`/user/${user.id}`}
                           className="name-link"
                           title={getRatingTitle(user.rating)}
                         >

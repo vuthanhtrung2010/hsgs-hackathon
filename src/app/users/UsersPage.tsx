@@ -210,7 +210,7 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
                       <td className="data-table-body-cell">
                         <Link
                           href={`/user/${user.id}`}
-                          className="name-link"
+                          className="username-link"
                           title={getRatingTitle(user.rating)}
                         >
                           <NameDisplay name={user.name} rating={user.rating} />

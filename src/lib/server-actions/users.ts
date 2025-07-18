@@ -12,22 +12,10 @@ export interface Recommendations {
 }
 
 export interface Clusters {
-  BUSINESS: number;
-  ENVIRONMENT: number;
-  FAMILY_AND_CHILDREN: number;
-  FOOD: number;
-  TECHNOLOGY: number;
-  TRANSPORT: number;
-  CRIME: number;
-  LANGUAGE: number;
-  TRAVEL: number;
-  ECONOMY: number;
-  HEALTH: number;
-  EDUCATION: number;
-  COMMUNICATION: number;
-  MEDIA: number;
+  MATH: number;
   READING: number;
-  ART: number;
+  VOCALBULARY: number;
+  LISTENING: number;
 }
 
 export interface IUserData {

@@ -83,9 +83,10 @@ export default function UsersPage() {
             }
             break;
           case "rating":
-            // Get the average rating across all courses
-            aValue = a.course.reduce((sum, course) => sum + course.rating, 0) / a.course.length;
-            bValue = b.course.reduce((sum, course) => sum + course.rating, 0) / b.course.length;
+            // Get the rating for the selected course
+            aValue = (a.course && a.course.courseId.toString() === selectedCourseId) ? a.course.rating : 1500;
+            bValue = (b.course && b.course.courseId.toString() === selectedCourseId) ? b.course.rating : 1500;
+            
             const comparison = (aValue as number) - (bValue as number);
             return sortOrder === "asc" ? comparison : -comparison;
           default:
@@ -95,7 +96,7 @@ export default function UsersPage() {
         return 0;
       });
     },
-    [sortField, sortOrder]
+    [sortField, sortOrder, selectedCourseId]
   );
 
   // Load users when course changes
@@ -115,31 +116,31 @@ export default function UsersPage() {
             id: "26078",
             name: "Học Sinh",
             shortName: "Học Sinh",
-            course: [{
-              courseId: selectedCourseId,
+            course: {
+              courseId: parseInt(selectedCourseId),
               courseName: "IELTS Practice",
               rating: 1581
-            }]
+            }
           },
           {
             id: "26079", 
             name: "Nguyễn Hòa Bình",
             shortName: "Nguyễn Hòa Bình",
-            course: [{
-              courseId: selectedCourseId,
+            course: {
+              courseId: parseInt(selectedCourseId),
               courseName: "IELTS Practice",
               rating: 1541
-            }]
+            }
           },
           {
             id: "26071",
             name: "An Hiep",
             shortName: "An Hiep", 
-            course: [{
-              courseId: selectedCourseId,
+            course: {
+              courseId: parseInt(selectedCourseId),
               courseName: "IELTS Practice",
               rating: 1501
-            }]
+            }
           }
         ];
         setUsers(mockUsers);
@@ -285,22 +286,22 @@ export default function UsersPage() {
                   </tr>
                 ) : (
                   currentUsers.map((user, index) => {
-                    const averageRating = user.course.reduce((sum, course) => sum + course.rating, 0) / user.course.length;
+                    const rating = (user.course && user.course.courseId.toString() === selectedCourseId) ? user.course.rating : 1500;
                     return (
                       <tr key={user.id} className="data-table-body-row">
                         <td className="data-table-body-cell center">
                           <span className="font-bold text-lg">#{startIndex + index + 1}</span>
                         </td>
                         <td className="data-table-body-cell center" style={{ verticalAlign: "middle" }}>
-                          <RatingDisplay rating={Math.round(averageRating)} showIcon={true} />
+                          <RatingDisplay rating={Math.round(rating)} showIcon={true} />
                         </td>
                         <td className="data-table-body-cell">
                           <Link
                             href={`/user/${user.id}`}
                             className="username-link"
-                            title={getRatingTitle(Math.round(averageRating))}
+                            title={getRatingTitle(Math.round(rating))}
                           >
-                            <NameDisplay name={user.name} rating={Math.round(averageRating)} />
+                            <NameDisplay name={user.name} rating={Math.round(rating)} />
                           </Link>
                         </td>
                       </tr>

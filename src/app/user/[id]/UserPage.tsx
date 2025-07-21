@@ -39,11 +39,6 @@ export default function UserPage({ userId, userRank }: UserPageProps) {
           return;
         }
         setUserData(user);
-        
-        // Set default course
-        if (user.courses && user.courses.length > 0 && !selectedCourseId) {
-          setSelectedCourseId(user.courses[0].courseId);
-        }
       } catch (err) {
         console.error("Failed to load user data:", err);
         setError("Failed to load user data");
@@ -53,7 +48,14 @@ export default function UserPage({ userId, userRank }: UserPageProps) {
     }
 
     loadUserData();
-  }, [userId, selectedCourseId]);
+  }, [userId]);
+
+  // Separate effect to set default course
+  useEffect(() => {
+    if (userData?.courses && userData.courses.length > 0 && !selectedCourseId) {
+      setSelectedCourseId(userData.courses[0].courseId);
+    }
+  }, [userData, selectedCourseId]);
 
   const handleCourseChange = (courseId: string) => {
     setSelectedCourseId(courseId);

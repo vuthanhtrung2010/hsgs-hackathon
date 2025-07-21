@@ -3,10 +3,10 @@ export interface IUsersListData {
   name: string;
   shortName: string;
   course: {
-    courseId: string;
+    courseId: number;
     courseName: string;
     rating: number;
-  }[];
+  };
 }
 
 export interface Recommendations {
@@ -59,11 +59,10 @@ export interface IUserData {
 
 export async function getRankings(courseId?: string): Promise<IUsersListData[]> {
   try {
-    const url = new URL(`/api/ranking/${courseId || ''}`, process.env.API_BASE_URL);
-    const response = await fetch(url.toString(), {
+    const url = `/api/ranking/${courseId || 'default'}`;
+    const response = await fetch(url, {
       method: "GET",
       cache: "no-cache",
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
 
     if (!response.ok) {
@@ -80,14 +79,10 @@ export async function getRankings(courseId?: string): Promise<IUsersListData[]> 
 
 export async function getUserData(userId: string): Promise<IUserData> {
   try {
-    const url = new URL(
-      `/api/users/details/${userId}`,
-      process.env.API_BASE_URL
-    );
-    const response = await fetch(url.toString(), {
+    const url = `/api/users/${userId}`;
+    const response = await fetch(url, {
       method: "GET",
       cache: "no-cache",
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
 
     if (!response.ok) {
@@ -104,11 +99,10 @@ export async function getUserData(userId: string): Promise<IUserData> {
 
 export async function getCourses(): Promise<{ id: string; name: string }[]> {
   try {
-    const url = new URL('/api/courses', process.env.API_BASE_URL);
-    const response = await fetch(url.toString(), {
+    const url = '/api/courses';
+    const response = await fetch(url, {
       method: "GET",
       cache: "no-cache",
-      next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
     if (!response.ok) {

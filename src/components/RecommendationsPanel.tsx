@@ -60,7 +60,7 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
           }
 
           const quizUrl = courseId 
-            ? `${canvasBaseUrl}/courses/${courseId}/quizzes/${rec.quizId}`
+            ? new URL(`/courses/${courseId}/quizzes/${rec.quizId}`, canvasBaseUrl).toString()
             : '#'; // Fallback if environment variables are not set
 
           return (

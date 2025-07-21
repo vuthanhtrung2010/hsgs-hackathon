@@ -3,7 +3,7 @@ import { Config } from "@/config";
 import UsersPage from "./UsersPage";
 
 // Use Node.js runtime for server actions compatibility
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export const metadata: Metadata = {
     title: `Leaderboard - ${Config.siteDescription}`,

@@ -3,6 +3,8 @@ import { Config } from "@/config";
 import { getUserData } from "@/lib/server-actions/users";
 import UserPage from "./UserPage";
 
+export const runtime = 'edge';
+
 export async function generateMetadata({
   params,
 }: {

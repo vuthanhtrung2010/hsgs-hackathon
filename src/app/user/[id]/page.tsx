@@ -1,13 +1,14 @@
 import { Metadata } from "next";
 import { Config } from "@/config";
 import { getUserData } from "@/lib/server-actions/users";
-import { notFound } from "next/navigation";
 import UserPage from "./UserPage";
+
+export const runtime = 'edge';
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -33,15 +34,11 @@ export async function generateMetadata({
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const userData = await getUserData(id);
-  if (!userData) notFound();
-
+  
   return (
-    <UserPage
-      userData={userData}
-    />
+    <UserPage userId={id} />
   );
 }

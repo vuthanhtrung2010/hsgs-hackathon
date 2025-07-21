@@ -62,7 +62,7 @@ export default function ClusterRadarChart({ clusters, userName }: ClusterRadarCh
   return (
     <div className="bg-card border rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">IELTS Skills Analysis</h2>
+        <h2 className="text-xl font-semibold">Skills Analysis</h2>
         <div className="text-sm text-muted-foreground">
           Avg: <span className={`font-bold ${getRatingClass(averageRating)}`}>
             {averageRating}

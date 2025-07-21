@@ -1,42 +1,65 @@
 export interface IUsersListData {
-  id: number;
+  id: string;
   name: string;
   shortName: string;
-  rating: number;
+  course: {
+    courseId: string;
+    courseName: string;
+    rating: number;
+  }[];
 }
 
 export interface Recommendations {
-  id: number;
-  title: string;
+  quizId: string;
+  quizName: string;
+  cluster: string;
   rating: number;
 }
 
 export interface Clusters {
-  MATH: number;
-  READING: number;
-  VOCALBULARY: number;
-  LISTENING: number;
+  ART: number | null;
+  BUSINESS: number | null;
+  COMMUNICATION: number | null;
+  CRIME: number | null;
+  ECONOMY: number | null;
+  EDUCATION: number | null;
+  ENVIRONMENT: number | null;
+  "FAMILY AND CHILDREN": number | null;
+  FOOD: number | null;
+  HEALTH: number | null;
+  LANGUAGE: number | null;
+  MEDIA: number | null;
+  READING: number | null;
+  TECHNOLOGY: number | null;
+  TRANSPORT: number | null;
+  TRAVEL: number | null;
 }
 
-export interface IUserData {
-  id: number;
-  name: string;
-  shortName: string;
-  rating: number;
+export interface Course {
+  courseId: string;
+  courseName: string;
   minRating: number;
   maxRating: number;
   ratingChanges: {
     date: string;
     rating: number;
   }[];
-  avatarURL: string;
   recommendations?: Recommendations[];
   clusters: Clusters;
 }
 
-export async function getUsersList(): Promise<IUsersListData[]> {
+export interface IUserData {
+  id: string;
+  name: string;
+  shortName: string;
+  rating: number;
+  avatarURL: string;
+  courses?: Course[];
+}
+
+export async function getRankings(courseId?: string): Promise<IUsersListData[]> {
   try {
-    const url = new URL("/api/users/list", process.env.API_BASE_URL);
+    const url = new URL(`/api/ranking/${courseId || ''}`, process.env.API_BASE_URL);
     const response = await fetch(url.toString(), {
       method: "GET",
       cache: "no-cache",
@@ -48,14 +71,14 @@ export async function getUsersList(): Promise<IUsersListData[]> {
     }
 
     const data = await response.json();
-    return data.users as IUsersListData[];
+    return data as IUsersListData[];
   } catch (error) {
     console.error("Error fetching users list:", error);
     throw error; // Re-throw to handle in the calling function
   }
 }
 
-export async function getUserData(userId: number): Promise<IUserData> {
+export async function getUserData(userId: string): Promise<IUserData> {
   try {
     const url = new URL(
       `/api/users/details/${userId}`,
@@ -67,42 +90,38 @@ export async function getUserData(userId: number): Promise<IUserData> {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
 
-    const avatarURL = new URL(
-      `/api/v1/users/${userId}/avatars`,
-      process.env.CANVAS_API_BASE_URL
-    );
-    const avatarResponse = await fetch(avatarURL.toString(), {
-      method: "GET",
-      cache: "no-cache",
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.CANVAS_API_KEY}`,
-      },
-    });
-
-    if (!avatarResponse.ok) {
-      throw new Error(
-        `Failed to fetch user avatar: ${avatarResponse.statusText}`
-      );
-    }
-
     if (!response.ok) {
       throw new Error(`Failed to fetch user data: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const avatarData = await avatarResponse.json();
-
-    // Merge data and avatarData
-    const mergedData = {
-      ...data,
-      avatarURL: avatarData[0].url,
-    };
-
-    return mergedData;
+    return data;
   } catch (error) {
     console.error("Error fetching user data:", error);
     throw error; // Re-throw to handle in the calling function
+  }
+}
+
+export async function getCourses(): Promise<{ id: string; name: string }[]> {
+  try {
+    const url = new URL('/api/courses', process.env.API_BASE_URL);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      cache: "no-cache",
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch courses: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data as { id: string; name: string }[];
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    // Return fallback courses if API fails
+    return [
+      { id: "default", name: "Default Course" }
+    ];
   }
 }

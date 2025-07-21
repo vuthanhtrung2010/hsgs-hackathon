@@ -60,12 +60,12 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
           }
 
           const quizUrl = courseId 
-            ? `${canvasBaseUrl}/courses/${courseId}/quizzes/${rec.id}`
+            ? `${canvasBaseUrl}/courses/${courseId}/quizzes/${rec.quizId}`
             : '#'; // Fallback if environment variables are not set
 
           return (
             <a
-              key={rec.id}
+              key={rec.quizId}
               href={quizUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -73,7 +73,7 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
             >
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2 group-hover:text-primary transition-colors">
-                  {rec.title}
+                  {rec.quizName}
                 </h3>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <FontAwesomeIcon 
@@ -88,9 +88,14 @@ export default function RecommendationsPanel({ recommendations, userRating }: Re
               </div>
               
               <div className="flex items-center justify-between text-xs">
-                <span className={`font-medium ${getRatingClass(rec.rating)}`}>
-                  {rec.rating}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`font-medium ${getRatingClass(rec.rating)}`}>
+                    {rec.rating}
+                  </span>
+                  <span className="text-muted-foreground text-xs px-1 py-0.5 bg-muted rounded">
+                    {rec.cluster}
+                  </span>
+                </div>
                 <span className={`${difficultyColor} font-medium`}>
                   {difficultyText}
                 </span>

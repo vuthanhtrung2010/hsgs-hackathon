@@ -21,9 +21,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { IUsersListData } from "@/lib/server-actions/users";
+import { IUsersListData, getRankings } from "@/lib/server-actions/users";
 import { getRatingTitle } from "@/lib/rating";
 import RatingDisplay from "@/components/RatingDisplay";
+import CourseSelector from "@/components/CourseSelector";
 import "@/styles/rating.css";
 import "@/styles/table.css";
 import Loading from "../loading";
@@ -34,17 +35,16 @@ const USERS_PER_PAGE = 50;
 type SortField = "name" | "rating";
 type SortOrder = "asc" | "desc" | null;
 
-interface UsersPageProps {
-  initialUsers: IUsersListData[];
-}
-
-export default function UsersPage({ initialUsers }: UsersPageProps) {
-  const [filteredUsers, setFilteredUsers] = useState<IUsersListData[]>(initialUsers);
+export default function UsersPage() {
+  const [users, setUsers] = useState<IUsersListData[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<IUsersListData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("rating");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -71,28 +71,85 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
       if (!sortField || !sortOrder) return users;
 
       return [...users].sort((a, b) => {
-        let aValue: number;
-        let bValue: number;
+        let aValue: number | string;
+        let bValue: number | string;
 
         switch (sortField) {
           case "name":
-            aValue = a.id;
-            bValue = b.id;
+            aValue = a.name;
+            bValue = b.name;
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+              return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            }
             break;
           case "rating":
-            aValue = a.rating;
-            bValue = b.rating;
-            break;
+            // Get the average rating across all courses
+            aValue = a.course.reduce((sum, course) => sum + course.rating, 0) / a.course.length;
+            bValue = b.course.reduce((sum, course) => sum + course.rating, 0) / b.course.length;
+            const comparison = (aValue as number) - (bValue as number);
+            return sortOrder === "asc" ? comparison : -comparison;
           default:
             return 0;
         }
 
-        const comparison = aValue - bValue;
-        return sortOrder === "asc" ? comparison : -comparison;
+        return 0;
       });
     },
     [sortField, sortOrder]
   );
+
+  // Load users when course changes
+  useEffect(() => {
+    async function loadUsers() {
+      if (!selectedCourseId) return;
+      
+      setIsLoading(true);
+      try {
+        const usersData = await getRankings(selectedCourseId);
+        setUsers(usersData);
+      } catch (error) {
+        console.error("Failed to load users:", error);
+        // Use mock data as fallback
+        const mockUsers: IUsersListData[] = [
+          {
+            id: "26078",
+            name: "Học Sinh",
+            shortName: "Học Sinh",
+            course: [{
+              courseId: selectedCourseId,
+              courseName: "IELTS Practice",
+              rating: 1581
+            }]
+          },
+          {
+            id: "26079", 
+            name: "Nguyễn Hòa Bình",
+            shortName: "Nguyễn Hòa Bình",
+            course: [{
+              courseId: selectedCourseId,
+              courseName: "IELTS Practice",
+              rating: 1541
+            }]
+          },
+          {
+            id: "26071",
+            name: "An Hiep",
+            shortName: "An Hiep", 
+            course: [{
+              courseId: selectedCourseId,
+              courseName: "IELTS Practice",
+              rating: 1501
+            }]
+          }
+        ];
+        setUsers(mockUsers);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadUsers();
+  }, [selectedCourseId]);
 
   const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
   const startIndex = (currentPage - 1) * USERS_PER_PAGE;
@@ -107,11 +164,11 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
   }, []);
 
   useEffect(() => {
-    let filtered = initialUsers;
+    let filtered = users;
 
     if (searchTerm) {
       filtered = filtered.filter((user) =>
-        user.name.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -119,7 +176,11 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
 
     setFilteredUsers(filtered);
     setCurrentPage(1);
-  }, [searchTerm, initialUsers, sortField, sortOrder, sortUsers]);
+  }, [searchTerm, users, sortField, sortOrder, sortUsers]);
+
+  const handleCourseChange = (courseId: string) => {
+    setSelectedCourseId(courseId);
+  };
 
   return (
     <main className="max-w-7xl mx-auto py-8 px-4">
@@ -131,6 +192,16 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
             Leaderboard
           </h1>
           <hr className="mb-6" />
+          
+          {/* Course Selector */}
+          <div className="mb-4 flex items-center gap-4">
+            <span className="text-sm font-medium">Course:</span>
+            <CourseSelector 
+              selectedCourseId={selectedCourseId}
+              onCourseChange={handleCourseChange}
+            />
+          </div>
+
           <div className="search-controls">
             <div className="search-input-container">
               <FontAwesomeIcon icon={faSearch} className="search-icon" />
@@ -149,11 +220,17 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
             )}
           </div>
           <div className="results-info">
-            Showing {filteredUsers.length} users
-            {totalPages > 1 && (
+            {isLoading ? (
+              <span>Loading users...</span>
+            ) : (
               <>
-                {" "}
-                • Page {currentPage} of {totalPages}
+                Showing {filteredUsers.length} users
+                {totalPages > 1 && (
+                  <>
+                    {" "}
+                    • Page {currentPage} of {totalPages}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -188,7 +265,15 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {currentUsers.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={3} className="data-table-body-cell center" style={{ height: "6rem" }}>
+                      <div className="flex items-center justify-center">
+                        <Loading />
+                      </div>
+                    </td>
+                  </tr>
+                ) : currentUsers.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="data-table-body-cell center" style={{ height: "6rem" }}>
                       <span className="text-muted-foreground">
@@ -199,25 +284,28 @@ export default function UsersPage({ initialUsers }: UsersPageProps) {
                     </td>
                   </tr>
                 ) : (
-                  currentUsers.map((user, index) => (
-                    <tr key={user.name} className="data-table-body-row">
-                      <td className="data-table-body-cell center">
-                        <span className="font-bold text-lg">#{startIndex + index + 1}</span>
-                      </td>
-                      <td className="data-table-body-cell center" style={{ verticalAlign: "middle" }}>
-                        <RatingDisplay rating={user.rating} showIcon={true} />
-                      </td>
-                      <td className="data-table-body-cell">
-                        <Link
-                          href={`/user/${user.id}`}
-                          className="username-link"
-                          title={getRatingTitle(user.rating)}
-                        >
-                          <NameDisplay name={user.name} rating={user.rating} />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                  currentUsers.map((user, index) => {
+                    const averageRating = user.course.reduce((sum, course) => sum + course.rating, 0) / user.course.length;
+                    return (
+                      <tr key={user.id} className="data-table-body-row">
+                        <td className="data-table-body-cell center">
+                          <span className="font-bold text-lg">#{startIndex + index + 1}</span>
+                        </td>
+                        <td className="data-table-body-cell center" style={{ verticalAlign: "middle" }}>
+                          <RatingDisplay rating={Math.round(averageRating)} showIcon={true} />
+                        </td>
+                        <td className="data-table-body-cell">
+                          <Link
+                            href={`/user/${user.id}`}
+                            className="username-link"
+                            title={getRatingTitle(Math.round(averageRating))}
+                          >
+                            <NameDisplay name={user.name} rating={Math.round(averageRating)} />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

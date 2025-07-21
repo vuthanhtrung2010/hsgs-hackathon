@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { IUserData } from "@/lib/server-actions/users";
+import { useState, useEffect } from "react";
+import { IUserData, getUserData } from "@/lib/server-actions/users";
 import { getRatingClass, getRatingTitle } from "@/lib/rating";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
@@ -10,13 +11,66 @@ import RatingChart from "@/components/RatingChart";
 import RatingDisplay from "@/components/RatingDisplay";
 import ClusterRadarChart from "@/components/ClusterRadarChart";
 import RecommendationsPanel from "@/components/RecommendationsPanel";
+import CourseSelector from "@/components/CourseSelector";
+import Loading from "../../loading";
+import { notFound } from "next/navigation";
 
 interface UserPageProps {
-  userData: IUserData;
+  userId: string;
   userRank?: number;
 }
 
-export default function UserPage({ userData, userRank }: UserPageProps) {
+export default function UserPage({ userId, userRank }: UserPageProps) {
+  const [userData, setUserData] = useState<IUserData | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get current course data
+  const currentCourse = userData?.courses?.find(course => course.courseId === selectedCourseId) || userData?.courses?.[0];
+
+  useEffect(() => {
+    async function loadUserData() {
+      try {
+        setLoading(true);
+        const user = await getUserData(userId);
+        if (!user) {
+          setError("User not found");
+          return;
+        }
+        setUserData(user);
+        
+        // Set default course
+        if (user.courses && user.courses.length > 0 && !selectedCourseId) {
+          setSelectedCourseId(user.courses[0].courseId);
+        }
+      } catch (err) {
+        console.error("Failed to load user data:", err);
+        setError("Failed to load user data");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUserData();
+  }, [userId, selectedCourseId]);
+
+  const handleCourseChange = (courseId: string) => {
+    setSelectedCourseId(courseId);
+  };
+
+  if (loading) {
+    return (
+      <main className="max-w-6xl mx-auto py-8 px-4">
+        <Loading />
+      </main>
+    );
+  }
+
+  if (error || !userData) {
+    return notFound();
+  }
+
   return (
     <main className="max-w-6xl mx-auto py-8 px-4">
       <div className="user-profile grid md:grid-cols-[250px_1fr] gap-8">
@@ -62,18 +116,22 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
                 <span className="text-muted-foreground">Rating (avg):</span>
                 <RatingDisplay rating={userData.rating} showIcon={true} />
               </div>
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-muted-foreground">
-                  Min. rating (avg):
-                </span>
-                <RatingDisplay rating={userData.minRating} showIcon={true} />
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">
-                  Max. rating (avg):
-                </span>
-                <RatingDisplay rating={userData.maxRating} showIcon={true} />
-              </div>
+              {currentCourse && (
+                <>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-muted-foreground">
+                      Min. rating:
+                    </span>
+                    <RatingDisplay rating={currentCourse.minRating} showIcon={true} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">
+                      Max. rating:
+                    </span>
+                    <RatingDisplay rating={currentCourse.maxRating} showIcon={true} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -89,54 +147,54 @@ export default function UserPage({ userData, userRank }: UserPageProps) {
 
         {/* Main content */}
         <div className="user-content">
-          {/* IELTS Skills & Recommendations */}
-          <div className="grid lg:grid-cols-[2fr_1fr] gap-6 mb-6">
-            <ClusterRadarChart 
-              clusters={userData.clusters} 
-              userName={userData.name}
-            />
-            <RecommendationsPanel 
-              recommendations={userData.recommendations}
-              userRating={userData.rating}
-            />
-          </div>
+          {/* Course Selector */}
+          {userData.courses && userData.courses.length > 1 && (
+            <div className="mb-6 flex items-center gap-4">
+              <span className="text-sm font-medium">Course:</span>
+              <CourseSelector 
+                selectedCourseId={selectedCourseId}
+                onCourseChange={handleCourseChange}
+              />
+            </div>
+          )}
 
-          {/* Activity Heatmap */}
-          {/* <div className="bg-card border rounded-lg p-6 mb-6">
-                        <h2 className="text-xl font-semibold mb-4">Submission Activity</h2>
-                        
-                        {userData.submissions.length === 0 ? (
-                            <p className="text-muted-foreground text-center py-8">
-                                No submissions yet.
-                            </p>
-                        ) : (
-                            <div className="submission-activity">
-                                <ActivityHeatmap submissions={userData.submissions} />
-                            </div>
-                        )}
-                    </div> */}
-
-          {/* Rating History */}
-          <div className="bg-card border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Average Rating History</h2>
-            {userData.ratingChanges && userData.ratingChanges.length > 0 ? (
-              <div className="w-full">
-                <RatingChart
-                  ratingChanges={userData.ratingChanges}
-                  minRating={userData.minRating}
-                  maxRating={userData.maxRating}
+          {currentCourse && (
+            <>
+              {/* IELTS Skills & Recommendations */}
+              <div className="grid lg:grid-cols-[2fr_1fr] gap-6 mb-6">
+                <ClusterRadarChart 
+                  clusters={currentCourse.clusters} 
+                  userName={userData.name}
+                />
+                <RecommendationsPanel 
+                  recommendations={currentCourse.recommendations}
+                  userRating={userData.rating}
                 />
               </div>
-            ) : (
-              <div className="relative w-full h-[300px] bg-muted/20 rounded-md border border-border">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">
-                    No rating history available
-                  </p>
-                </div>
+
+              {/* Rating History */}
+              <div className="bg-card border rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Rating History - {currentCourse.courseName}</h2>
+                {currentCourse.ratingChanges && currentCourse.ratingChanges.length > 0 ? (
+                  <div className="w-full">
+                    <RatingChart
+                      ratingChanges={currentCourse.ratingChanges}
+                      minRating={currentCourse.minRating}
+                      maxRating={currentCourse.maxRating}
+                    />
+                  </div>
+                ) : (
+                  <div className="relative w-full h-[300px] bg-muted/20 rounded-md border border-border">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="text-sm text-muted-foreground">
+                        No rating history available for this course
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
     </main>

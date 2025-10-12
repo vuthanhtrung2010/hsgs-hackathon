@@ -1,3 +1,6 @@
+# DEPRECATED
+use https://github.com/vuthanhtrung2010/hsgs-hackathon-react-router
+
 # Under Development
 Hi, this FrontEnd page is made by [Vũ Thành Trung](https://github.com/vuthanhtrung2010)
 
